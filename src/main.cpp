@@ -10,6 +10,7 @@
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <SerialCommand.h>
 // Cấu hình wifi
 const char *ssid = "HuongThuy", *password = "0378521725", *ssidAP = "ESP8266WiFi";
 // Cấu hình mqtt
@@ -18,9 +19,12 @@ const unsigned int mqtt_port = 1883;
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
+SerialCommand sCmd;
 void setupWifi();
 void reconnectMqtt();
 void callback(char *topic, byte *payload, unsigned int length);
+void onScanRFID();
+void onIRChange();
 void setup()
 {
     // put your setup code here, to run once:
@@ -29,6 +33,8 @@ void setup()
     setupWifi();
     client.setServer(mqtt_host, mqtt_port);
     client.setCallback(callback);
+    sCmd.addCommand("SCAN", onScanRFID);
+    sCmd.addCommand("IR", onIRChange);
 }
 
 void loop()
@@ -39,6 +45,7 @@ void loop()
         reconnectMqtt();
     }
     client.loop();
+    sCmd.readSerial();
 }
 void setupWifi()
 {
@@ -124,4 +131,45 @@ void callback(char *topic, byte *pl, unsigned int length)
         Serial.print(gate);
         Serial.println();
     }
+}
+void onScanRFID()
+{
+    char *uuid = sCmd.next();
+    debug("SCAN ");
+    debugln(uuid);
+    if (uuid != NULL)
+    {
+        DynamicJsonDocument doc(100);
+        String json;
+        doc["action"] = "read";
+        doc["payload"] = uuid;
+        serializeJson(doc, json);
+        debugln(json);
+        client.publish("mqtt/scan", json.c_str());
+    }
+}
+
+void onIRChange()
+{
+    char *args;
+    debug("IR ");
+    args = sCmd.next();
+    debug(args);
+    if (args == NULL)
+        return;
+    int id = atoi(args);
+    args = sCmd.next();
+    debug(" ");
+    debugln(args);
+    if (args == NULL)
+        return;
+    int value = atoi(args);
+    DynamicJsonDocument doc(100);
+    String json;
+    doc["action"] = "change";
+    doc["payload"]["id"] = id;
+    doc["payload"]["serving"] = value == 1;
+    serializeJson(doc, json);
+    debugln(json);
+    client.publish("mqtt/ir", json.c_str());
 }

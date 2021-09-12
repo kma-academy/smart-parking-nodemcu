@@ -11,15 +11,18 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <SerialCommand.h>
+#include <SoftwareSerial.h>
 // Cấu hình wifi
 const char *ssid = "HuongThuy", *password = "0378521725", *ssidAP = "ESP8266WiFi";
 // Cấu hình mqtt
 const char *mqtt_host = "103.195.237.120", *mqtt_user = "notekunn", *mqtt_pass = "tieulinh123";
 const unsigned int mqtt_port = 1883;
-
+const byte RX = D1;
+const byte TX = D2;
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
 SerialCommand sCmd;
+SoftwareSerial uartSerial(RX, TX);
 void setupWifi();
 void reconnectMqtt();
 void callback(char *topic, byte *payload, unsigned int length);
@@ -33,8 +36,9 @@ void setup()
     setupWifi();
     client.setServer(mqtt_host, mqtt_port);
     client.setCallback(callback);
-    sCmd.addCommand("SCAN", onScanRFID);
-    sCmd.addCommand("IR", onIRChange);
+    sCmd.begin(Serial);
+    sCmd.addCommand((char *)"SCAN", NULL, onScanRFID, NULL, NULL);
+    sCmd.addCommand((char *)"IR", NULL, onIRChange, NULL, NULL);
 }
 
 void loop()
@@ -45,7 +49,7 @@ void loop()
         reconnectMqtt();
     }
     client.loop();
-    sCmd.readSerial();
+    sCmd.loop();
 }
 void setupWifi()
 {

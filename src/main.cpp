@@ -1,11 +1,4 @@
-#define DEBUG 1
-#if DEBUG == 1
-#define debug(x) Serial.print(x)
-#define debugln(x) Serial.println(x)
-#else
-#define debug(x)
-#define debugln(x)
-#endif
+#include <debug.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
@@ -22,7 +15,7 @@ const byte TX = D2;
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
 SerialCommand sCmd;
-SoftwareSerial uartSerial(RX, TX);
+SoftwareSerial softSerial(RX, TX);
 void setupWifi();
 void reconnectMqtt();
 void callback(char *topic, byte *payload, unsigned int length);
@@ -36,7 +29,7 @@ void setup()
     setupWifi();
     client.setServer(mqtt_host, mqtt_port);
     client.setCallback(callback);
-    sCmd.begin(Serial);
+    sCmd.begin(uartSerial);
     sCmd.addCommand((char *)"SCAN", NULL, onScanRFID, NULL, NULL);
     sCmd.addCommand((char *)"IR", NULL, onIRChange, NULL, NULL);
 }
@@ -69,7 +62,7 @@ void setupWifi()
     Serial.println(WiFi.localIP());
     debugln("Create access point...");
     debugln(WiFi.softAP(ssidAP) ? "Ready" : "Failed!");
-    Serial.print("SoftAP IP address:");
+    Serial.print("SoftAP IP address: ");
     Serial.println(WiFi.softAPIP());
     WiFi.setAutoReconnect(true);
     WiFi.persistent(true);
@@ -116,13 +109,13 @@ void callback(char *topic, byte *pl, unsigned int length)
         const char *lcd = doc["payload"]["lcd"]; // IN|OUT
         const char *lineOne = doc["payload"]["message"][0];
         const char *lineTwo = doc["payload"]["message"][1];
-        Serial.print("LCD");
-        Serial.print(lcd);
-        Serial.print("?");
-        Serial.print(lineOne);
-        Serial.print("?");
-        Serial.print(lineTwo);
-        Serial.println();
+        uartSerial.print("LCD");
+        uartSerial.print(lcd);
+        uartSerial.print("?");
+        uartSerial.print(lineOne);
+        uartSerial.print("?");
+        uartSerial.print(lineTwo);
+        uartSerial.println();
     }
     // Lệnh mở cổng
     if (strcmp("mqtt/gate", topic) == 0)
@@ -130,10 +123,10 @@ void callback(char *topic, byte *pl, unsigned int length)
         deserializeJson(doc, payload);
         // const char *action = doc["action"];
         const char *gate = doc["payload"]; // IN|OUT
-        Serial.print("OPENGATE");
-        Serial.print("?");
-        Serial.print(gate);
-        Serial.println();
+        uartSerial.print("OPENGATE");
+        uartSerial.print("?");
+        uartSerial.print(gate);
+        uartSerial.println();
     }
 }
 void onScanRFID()

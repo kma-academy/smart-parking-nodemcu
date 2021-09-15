@@ -25,7 +25,8 @@ void setup()
 {
     // put your setup code here, to run once:
     Serial.begin(9600);
-    Serial.println("NodeMCU is ready to connect");
+    // uartSerial.begin(9600);
+    Serial.println("DEBUG?NodeMCU is ready to connect");
     setupWifi();
     client.setServer(mqtt_host, mqtt_port);
     client.setCallback(callback);
@@ -37,6 +38,7 @@ void setup()
 void loop()
 {
     // put your main code here, to run repeatedly:
+    // Kết nối mqtt
     if (!client.connected())
     {
         reconnectMqtt();
@@ -46,9 +48,9 @@ void loop()
 }
 void setupWifi()
 {
-    debug("Connecting to wifi ");
+    debug("DEBUG?Connecting to wifi ");
     debugln(ssid);
-    debug("Waiting for connection");
+    debug("DEBUG?Waiting for connection");
     WiFi.begin(ssid, password);
 
     while (WiFi.status() != WL_CONNECTED)
@@ -57,12 +59,12 @@ void setupWifi()
         debug(".");
     }
     debugln();
-    Serial.println("WiFi connected");
-    Serial.print("IP address: ");
+    Serial.println("DEBUG?WiFi connected");
+    Serial.print("DEBUG?IP address: ");
     Serial.println(WiFi.localIP());
-    debugln("Create access point...");
+    debug("DEBUG?Create access point... ");
     debugln(WiFi.softAP(ssidAP) ? "Ready" : "Failed!");
-    Serial.print("SoftAP IP address: ");
+    Serial.print("DEBUG?SoftAP IP address: ");
     Serial.println(WiFi.softAPIP());
     WiFi.setAutoReconnect(true);
     WiFi.persistent(true);
@@ -92,13 +94,13 @@ void reconnectMqtt()
 }
 void callback(char *topic, byte *pl, unsigned int length)
 {
-    debug("Message arrived [");
-    debug(topic);
-    debug("] ");
+    // debug("Message arrived [");
+    // debug(topic);
+    // debug("] ");
     char payload[length + 1];
     memcpy(payload, pl, length);
     payload[length] = '\0';
-    debugln(payload);
+    // debugln(payload);
 
     DynamicJsonDocument doc(300);
     // Lệnh in lcd
@@ -132,8 +134,8 @@ void callback(char *topic, byte *pl, unsigned int length)
 void onScanRFID()
 {
     char *uuid = sCmd.next();
-    debug("SCAN ");
-    debugln(uuid);
+    // debug("SCAN ");
+    // debugln(uuid);
     if (uuid != NULL)
     {
         DynamicJsonDocument doc(100);
@@ -141,7 +143,7 @@ void onScanRFID()
         doc["action"] = "read";
         doc["payload"] = uuid;
         serializeJson(doc, json);
-        debugln(json);
+        // debugln(json);
         client.publish("mqtt/scan", json.c_str());
     }
 }
@@ -149,15 +151,15 @@ void onScanRFID()
 void onIRChange()
 {
     char *args;
-    debug("IR ");
+    // debug("IR ");
     args = sCmd.next();
-    debug(args);
+    // debug(args);
     if (args == NULL)
         return;
     int id = atoi(args);
     args = sCmd.next();
-    debug(" ");
-    debugln(args);
+    // debug(" ");
+    // debugln(args);
     if (args == NULL)
         return;
     int value = atoi(args);
@@ -167,6 +169,6 @@ void onIRChange()
     doc["payload"]["id"] = id;
     doc["payload"]["serving"] = value == 1;
     serializeJson(doc, json);
-    debugln(json);
+    // debugln(json);
     client.publish("mqtt/ir", json.c_str());
 }

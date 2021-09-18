@@ -8,7 +8,7 @@
 // Cấu hình wifi
 const char *ssid = "HuongThuy", *password = "0378521725", *ssidAP = "ESP8266WiFi";
 // Cấu hình mqtt
-const char *mqtt_host = "103.195.237.120", *mqtt_user = "notekunn", *mqtt_pass = "tieulinh123";
+const char *mqtt_host = "192.168.1.3", *mqtt_user = "notekunn", *mqtt_pass = "tieulinh123";
 const unsigned int mqtt_port = 1883;
 const byte RX = D1;
 const byte TX = D2;

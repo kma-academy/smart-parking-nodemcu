@@ -1,0 +1,6 @@
+#define ROOT_CHANNEL "kma/#"
+#define LCD_CHANNEL "kma/lcd"
+#define GATE_CHANNEL "kma/gate"
+#define IR_CHANNEL "kma/ir"
+#define SCAN_CHANNEL "kma/scan"
+#define CLIENT_ID "kma-client-nodemcu"

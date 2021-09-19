@@ -1,4 +1,5 @@
 #include <debug.h>
+#include <channel.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
@@ -8,7 +9,8 @@
 // Cấu hình wifi
 const char *ssid = "HuongThuy", *password = "0378521725", *ssidAP = "ESP8266WiFi";
 // Cấu hình mqtt
-const char *mqtt_host = "192.168.1.3", *mqtt_user = "notekunn", *mqtt_pass = "tieulinh123";
+const char *mqtt_host = "123.27.110.177", *mqtt_user = "notekunn", *mqtt_pass = "tieulinh123";
+
 const unsigned int mqtt_port = 1883;
 const byte RX = D1;
 const byte TX = D2;
@@ -74,19 +76,17 @@ void reconnectMqtt()
     while (!client.connected())
     {
 
-        String clientId = "client-";
-        clientId += String(random(0xffff), HEX);
-        if (client.connect(clientId.c_str(), mqtt_user, mqtt_pass))
+        if (client.connect(CLIENT_ID, mqtt_user, mqtt_pass))
         {
-            Serial.println("Connected to MQTT");
-            client.subscribe("mqtt/lcd");
-            client.subscribe("mqtt/gate");
+            Serial.println("DEBUG?Connected to MQTT");
+            client.subscribe(LCD_CHANNEL);
+            client.subscribe(GATE_CHANNEL);
         }
         else
         {
-            Serial.print("Error when connect mqtt:, rc=");
+            Serial.print("DEBUG?Error when connect mqtt:, rc=");
             Serial.println(client.state());
-            Serial.println("Try again in 5 seconds");
+            Serial.println("DEBUG?Try again in 5 seconds");
             // Đợi 5s
             delay(5000);
         }
@@ -104,7 +104,7 @@ void callback(char *topic, byte *pl, unsigned int length)
 
     DynamicJsonDocument doc(300);
     // Lệnh in lcd
-    if (strcmp("mqtt/lcd", topic) == 0)
+    if (strcmp(LCD_CHANNEL, topic) == 0)
     {
         deserializeJson(doc, payload);
         // const char *action = doc["action"];
@@ -120,7 +120,7 @@ void callback(char *topic, byte *pl, unsigned int length)
         uartSerial.println();
     }
     // Lệnh mở cổng
-    if (strcmp("mqtt/gate", topic) == 0)
+    if (strcmp(GATE_CHANNEL, topic) == 0)
     {
         deserializeJson(doc, payload);
         // const char *action = doc["action"];
@@ -144,7 +144,7 @@ void onScanRFID()
         doc["payload"] = uuid;
         serializeJson(doc, json);
         // debugln(json);
-        client.publish("mqtt/scan", json.c_str());
+        client.publish(SCAN_CHANNEL, json.c_str());
     }
 }
 
@@ -170,5 +170,5 @@ void onIRChange()
     doc["payload"]["serving"] = value == 1;
     serializeJson(doc, json);
     // debugln(json);
-    client.publish("mqtt/ir", json.c_str());
+    client.publish(IR_CHANNEL, json.c_str());
 }

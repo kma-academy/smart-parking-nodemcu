@@ -9,9 +9,9 @@
 // Cấu hình wifi
 const char *ssid = "HuongThuy", *password = "0378521725", *ssidAP = "ESP8266WiFi";
 // Cấu hình mqtt
-const char *mqtt_host = "123.27.110.177", *mqtt_user = "notekunn", *mqtt_pass = "tieulinh123";
+const char *mqtt_host = "192.168.1.3", *mqtt_user = "notekunn", *mqtt_pass = "tieulinh123";
 
-const unsigned int mqtt_port = 1883;
+const unsigned int mqtt_port = 1888;
 const byte RX = D1;
 const byte TX = D2;
 WiFiClient wifiClient;
@@ -73,7 +73,7 @@ void setupWifi()
 }
 void reconnectMqtt()
 {
-    while (!client.connected())
+    if (!client.connected())
     {
 
         if (client.connect(CLIENT_ID, mqtt_user, mqtt_pass))
@@ -88,7 +88,7 @@ void reconnectMqtt()
             Serial.println(client.state());
             Serial.println("DEBUG?Try again in 5 seconds");
             // Đợi 5s
-            delay(5000);
+            // delay(5000);
         }
     }
 }
